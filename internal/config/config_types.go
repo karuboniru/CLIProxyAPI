@@ -569,6 +569,9 @@ type OpenAICompatibility struct {
 	// BaseURL is the base URL for the external OpenAI-compatible API endpoint.
 	BaseURL string `yaml:"base-url" json:"base-url"`
 
+	// SupportsResponsesAPI enables native passthrough to the provider's /responses endpoint.
+	SupportsResponsesAPI bool `yaml:"supports-responses-api,omitempty" json:"supports-responses-api,omitempty"`
+
 	// APIKeyEntries defines API keys with optional per-key proxy configuration.
 	APIKeyEntries []OpenAICompatibilityAPIKey `yaml:"api-key-entries,omitempty" json:"api-key-entries,omitempty"`
 

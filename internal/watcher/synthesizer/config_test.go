@@ -444,9 +444,10 @@ func TestConfigSynthesizer_OpenAICompat(t *testing.T) {
 			name: "with APIKeyEntries",
 			compat: []config.OpenAICompatibility{
 				{
-					Name:           "CustomProvider",
-					BaseURL:        "https://custom.api.com",
-					DisableCooling: true,
+					Name:                 "CustomProvider",
+					BaseURL:              "https://custom.api.com",
+					DisableCooling:       true,
+					SupportsResponsesAPI: true,
 					APIKeyEntries: []config.OpenAICompatibilityAPIKey{
 						{APIKey: "key-1"},
 						{APIKey: "key-2"},
@@ -514,9 +515,36 @@ func TestConfigSynthesizer_OpenAICompat(t *testing.T) {
 					if v, ok := auths[i].Metadata["disable_cooling"].(bool); !ok || !v {
 						t.Fatalf("expected auth[%d].disable_cooling=true, got %v", i, auths[i].Metadata["disable_cooling"])
 					}
+					if auths[i].Attributes[coreauth.AttributeSupportsResponsesAPI] != "true" {
+						t.Fatalf("expected auth[%d].supports_responses_api=true, got %q", i, auths[i].Attributes[coreauth.AttributeSupportsResponsesAPI])
+					}
 				}
 			}
 		})
+	}
+}
+
+func TestConfigSynthesizerOpenAICompatKeylessSupportsResponsesAPI(t *testing.T) {
+	synth := NewConfigSynthesizer()
+	ctx := &SynthesisContext{
+		Config: &config.Config{OpenAICompatibility: []config.OpenAICompatibility{{
+			Name:                 "keyless",
+			BaseURL:              "https://keyless.example.com/v1",
+			SupportsResponsesAPI: true,
+		}}},
+		Now:         time.Now(),
+		IDGenerator: NewStableIDGenerator(),
+	}
+
+	auths, err := synth.Synthesize(ctx)
+	if err != nil {
+		t.Fatalf("Synthesize error: %v", err)
+	}
+	if len(auths) != 1 {
+		t.Fatalf("auth entries = %d, want 1", len(auths))
+	}
+	if auths[0].Attributes[coreauth.AttributeSupportsResponsesAPI] != "true" {
+		t.Fatalf("supports_responses_api = %q, want true", auths[0].Attributes[coreauth.AttributeSupportsResponsesAPI])
 	}
 }
 
